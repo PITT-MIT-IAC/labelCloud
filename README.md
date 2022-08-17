@@ -8,6 +8,9 @@
 
 
 # labelCloud
+<i> **This is a fork from the original repository: https://github.com/ch-sa/labelCloud. This contains changes that undo Kitti transformations by the original authors for the purpose of keeping consistency with our current training pipelines.** </i>
+
+<br></br>
 A lightweight tool for labeling 3D bounding boxes in point clouds.
 
 ![Overview of the Labeling Tool](https://raw.githubusercontent.com/ch-sa/labelCloud/master/docs/io_overview.png)
