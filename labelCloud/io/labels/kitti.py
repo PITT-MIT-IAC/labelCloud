@@ -18,7 +18,10 @@ class KittiFormat(BaseLabelFormat):
         transformed: bool = True,
     ) -> None:
         super().__init__(label_folder, export_precision, relative_rotation)
-        self.transformed = transformed
+        self.transformed = True
+
+        print("NOTE: This format is transformed for the Kitti Velodyne format. All other formats will NOT work.")
+        print("Format expected: X, Z, Y")
 
     def import_labels(self, pcd_path: Path) -> List[BBox]:
         labels = []
@@ -32,14 +35,17 @@ class KittiFormat(BaseLabelFormat):
                 line_elements = line.split()
                 centroid = [float(v) for v in line_elements[11:14]]
                 if self.transformed:
-                    centroid = centroid[2], -centroid[0], centroid[1] - 2.3
+                    # centroid = centroid[2], -centroid[0], centroid[1] - 2.3
+
+                    # This loads from our format (x,z,y) to expected (x,y,z)
+                    centroid = centroid[0], centroid[2], centroid[1]
                 dimensions = [float(v) for v in line_elements[8:11]]
                 if self.transformed:
                     dimensions = dimensions[2], dimensions[1], dimensions[0]
                 bbox = BBox(*centroid, *dimensions)
                 if self.transformed:
                     bbox.set_rotations(
-                        0, 0, rel2abs_rotation(-float(line_elements[14]) + math.pi / 2)
+                        0, 0, rel2abs_rotation(float(line_elements[14]) + math.pi)
                     )
                 else:
                     bbox.set_rotations(0, 0, rel2abs_rotation(float(line_elements[14])))
@@ -47,6 +53,7 @@ class KittiFormat(BaseLabelFormat):
                 labels.append(bbox)
             logging.info("Imported %s labels from %s." % (len(label_lines), label_path))
         return labels
+
 
     def export_labels(self, bboxes: List[BBox], pcd_path: Path) -> None:
         data = str()
@@ -56,16 +63,22 @@ class KittiFormat(BaseLabelFormat):
             obj_type = bbox.get_classname()
             centroid = bbox.get_center()
             if self.transformed:
-                centroid = (-centroid[1], centroid[2] + 2.3, centroid[0])
+                # centroid = (-centroid[1], centroid[2] + 2.3, centroid[0])
+
+                # This takes expected format (x,y,z) to our format (x,z,y)
+                centroid = (centroid[0], centroid[2], centroid[1])
             location = " ".join([str(self.round_dec(v)) for v in centroid])
             dimensions = bbox.get_dimensions()
+            
             if self.transformed:
                 dimensions = (dimensions[2], dimensions[1], dimensions[0])
+
             dimensions = " ".join([str(self.round_dec(v)) for v in dimensions])
             rotation_z = bbox.get_z_rotation()
+
             if self.transformed:
                 rotation_y = self.round_dec(
-                    -(abs2rel_rotation(rotation_z) - math.pi / 2)
+                    (abs2rel_rotation(rotation_z) - math.pi)
                 )
             else:
                 rotation_y = self.round_dec(abs2rel_rotation(rotation_z))
