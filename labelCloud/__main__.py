@@ -94,7 +94,7 @@ def start_gui():
     desktop = QDesktopWidget().availableGeometry()
     width = (desktop.width() - view.width()) / 2
     height = (desktop.height() - view.height()) / 2
-    view.move(width, height)
+    view.move(int(width), int(height))
 
     logging.info("Showing GUI...")
     sys.exit(app.exec_())

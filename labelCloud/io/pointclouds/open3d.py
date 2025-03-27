@@ -33,11 +33,16 @@ class Open3DHandler(BasePointCloudHandler):
         o3d_pointcloud.colors = o3d.utility.Vector3dVector(pointcloud.colors)
         return o3d_pointcloud
 
+    #def read_point_cloud(self, path: Path) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    #    super().read_point_cloud(path)
+    #    return self.to_point_cloud(
+    #        o3d.io.read_point_cloud(str(path), remove_nan_points=True)
+    #    )
+
     def read_point_cloud(self, path: Path) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         super().read_point_cloud(path)
-        return self.to_point_cloud(
-            o3d.io.read_point_cloud(str(path), remove_nan_points=True)
-        )
+        points = np.loadtxt(path, skiprows=10).astype(np.float32)
+        return (points[:,:3], None)
 
     def write_point_cloud(self, path: Path, pointcloud: "PointCloud") -> None:
         super().write_point_cloud(path, pointcloud)
