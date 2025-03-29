@@ -134,6 +134,16 @@ class Controller:
             self.view.glWidget.selected_side_vertices = []
             self.view.status_manager.clear_message(Context.SIDE_HOVERED)
 
+    def select_relative_bbox(self, step: int):
+        if step == 0:
+            return
+        max_id = len(self.bbox_controller.bboxes) - 1
+        curr_id = self.bbox_controller.active_bbox_id
+        new_id = curr_id + step
+        corner_case_id = 0 if step > 0 else max_id
+        new_id = new_id if new_id in range(max_id + 1) else corner_case_id
+        self.bbox_controller.set_active_bbox(new_id)
+
     # EVENT PROCESSING
     def mouse_clicked(self, a0: QtGui.QMouseEvent) -> None:
         """Triggers actions when the user clicks the mouse."""
@@ -235,9 +245,9 @@ class Controller:
             )
 
         # Reset point cloud pose to intial rotation and translation
-        elif (a0.key() == QtCore.Qt.Key_R) or (a0.key() == QtCore.Qt.Key_Home):
-            self.pcd_manager.reset_transformations()
-            logging.info("Reseted position to default.")
+        # elif (a0.key() == QtCore.Qt.Key_R) or (a0.key() == QtCore.Qt.Key_Home):
+        #     self.pcd_manager.reset_transformations()
+        #     logging.info("Reseted position to default.")
 
         elif a0.key() == QtCore.Qt.Key_Delete:  # Delete active bbox
             self.bbox_controller.delete_current_bbox()
@@ -254,16 +264,27 @@ class Controller:
                 self.align_mode.reset()
                 logging.info("Resetted selected points!")
 
+        # PCD seletion
+        elif a0.key() == QtCore.Qt.Key_R:
+            # load previous sample
+            self.prev_pcd()
+        elif a0.key() == QtCore.Qt.Key_F:
+            # load next sample
+            self.next_pcd()
+        elif a0.key() == QtCore.Qt.Key_T:
+            # select previous bbox
+            self.select_relative_bbox(-1)
+
         # BBOX MANIPULATION
-        elif (a0.key() == QtCore.Qt.Key_Y) or (a0.key() == QtCore.Qt.Key_Comma):
+        elif (a0.key() == QtCore.Qt.Key_C) or (a0.key() == QtCore.Qt.Key_Comma):
             # z rotate counterclockwise
             self.bbox_controller.rotate_around_z()
         elif (a0.key() == QtCore.Qt.Key_X) or (a0.key() == QtCore.Qt.Key_Period):
             # z rotate clockwise
             self.bbox_controller.rotate_around_z(clockwise=True)
-        elif a0.key() == QtCore.Qt.Key_C:
-            # y rotate counterclockwise
-            self.bbox_controller.rotate_around_y()
+        # elif a0.key() == QtCore.Qt.Key_C:
+        #     # y rotate counterclockwise
+        #     self.bbox_controller.rotate_around_y()
         elif a0.key() == QtCore.Qt.Key_V:
             # y rotate clockwise
             self.bbox_controller.rotate_around_y(clockwise=True)
